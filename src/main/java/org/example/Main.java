@@ -5,7 +5,24 @@ import org.jgrapht.graph.DefaultDirectedGraph;
 
 import java.util.*;
 
+/**
+ * @class Main
+ * @brief Main class for solving the Traveling Salesman Problem (TSP) on a graph of cities with coordinates.
+ *
+ * This class contains methods to calculate heuristics for cities, solve the TSP using nearest neighbor approach,
+ * and generate a fully connected graph with city coordinates.
+ */
 public class Main {
+
+    /**
+     * @brief Calculates heuristics for all pairs of cities in the graph.
+     *
+     * This method computes the Euclidean distance between all pairs of cities and stores them in a 2D array.
+     * The heuristic value between a city and itself is set to infinity.
+     *
+     * @param graph The graph representing cities as vertices and edges with coordinates.
+     * @return A 2D array containing the heuristic distances between cities.
+     */
     public static double[][] calculateHeuristics(Graph<String, Edge> graph) {
         final int size = graph.edgeSet().size(); // gets the max size of the graph cities
         double maxHeuristic = Double.MAX_VALUE; // initializes max heuristic
@@ -18,7 +35,7 @@ public class Main {
                     heuristics[i][j] = maxHeuristic;
                     continue;
                 }
-                // gets the start edge nad end edge
+                // gets the start edge and end edge
                 Edge startEdge = graph.edgeSet().stream().toList().get(i);
                 Edge endEdge = graph.edgeSet().stream().toList().get(j);
 
@@ -36,6 +53,17 @@ public class Main {
         return heuristics;
     }
 
+    /**
+     * @brief Solves the Traveling Salesman Problem (TSP) using a nearest neighbor approach.
+     *
+     * This method finds the shortest path starting from a given city, visiting all cities exactly once, and
+     * returning to the starting city. It uses precomputed heuristics to determine the nearest unvisited city
+     * at each step.
+     *
+     * @param graph The graph representing cities as vertices and edges with coordinates.
+     * @param startCity The starting city for the TSP path.
+     * @return A string representing the best path found, including the start and return to the start city.
+     */
     public static String solveTSP(Graph<String, Edge> graph, String startCity) {
         StringBuilder path = new StringBuilder(startCity); // Start from the initial city
         var cities = graph.vertexSet().stream().toList(); // Convert the vertex set to a List of String
@@ -61,7 +89,7 @@ public class Main {
                 }
             }
 
-            // If there is no more cities to be visited, terminate the loop
+            // If there are no more cities to be visited, terminate the loop
             if(nearestCityIndex == -1) {
                 break;
             }
@@ -79,6 +107,16 @@ public class Main {
         return path.toString();
     }
 
+    /**
+     * @brief Generates a fully connected graph based on city coordinates.
+     *
+     * This method creates a fully connected directed graph, where each city (vertex) is connected to
+     * every other city (vertex) with an edge representing the distance between them based on their
+     * coordinates.
+     *
+     * @param map A map containing the cities (keys) and their respective coordinates (values).
+     * @return A fully connected graph with the cities as vertices and edges representing the distances between them.
+     */
     public static Graph<String, Edge> getFullyConnectedGraph(Map<String, Edge> map) {
         // Create a graph
         Graph<String, Edge> graph = new DefaultDirectedGraph<>(Edge.class);
@@ -104,8 +142,15 @@ public class Main {
         return graph;
     }
 
+    /**
+     * @brief The main entry point of the program.
+     *
+     * This method initializes the map of cities with their coordinates, generates the graph, and solves the
+     * TSP for various starting cities, printing the results.
+     *
+     * @param args Command line arguments (not used).
+     */
     public static void main(String[] args) {
-
         // Define the coordinates for each city
         Map<String, Edge> romaniaMap = new HashMap<>();
         romaniaMap.put("Arad", new Edge(91, 492));
@@ -132,6 +177,7 @@ public class Main {
         // Gets fully connected graph from the map of Romania
         Graph<String, Edge> romaniaGraph = getFullyConnectedGraph(romaniaMap);
 
+        // Finding the best paths from different cities in Romania and prints them
         String bestPathFromArad = solveTSP(romaniaGraph, "Arad");
         System.out.println(bestPathFromArad);
         String bestPathFromFagaras = solveTSP(romaniaGraph, "Fagaras");
