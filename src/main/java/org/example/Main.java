@@ -23,8 +23,8 @@ public class Main {
                 Edge endEdge = graph.edgeSet().stream().toList().get(j);
 
                 // calculates the x and y coordinates between start and end edges
-                int vectorXCoordinate = endEdge.getxCoordinate() - startEdge.getxCoordinate();
-                int vectorYCoordinate = endEdge.getyCoordinate() - startEdge.getyCoordinate();
+                int vectorXCoordinate = endEdge.getXCoordinate() - startEdge.getXCoordinate();
+                int vectorYCoordinate = endEdge.getYCoordinate() - startEdge.getYCoordinate();
 
                 // calculates the distance between start and end edges and sets this value as
                 // heuristic for cities with i-th and j-th index (the start and the end city)
@@ -94,8 +94,8 @@ public class Main {
                     Edge coordinatesB = map.get(cityB);
 
                     // Add an edge between the cities with definite coordinates
-                    Edge edge = new Edge(coordinatesB.getxCoordinate() - coordinatesA.getxCoordinate(),
-                            coordinatesB.getyCoordinate() - coordinatesA.getyCoordinate());
+                    Edge edge = new Edge(coordinatesB.getXCoordinate() - coordinatesA.getXCoordinate(),
+                            coordinatesB.getYCoordinate() - coordinatesA.getYCoordinate());
                     graph.addEdge(cityA, cityB, edge);
                 }
             }
