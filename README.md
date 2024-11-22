@@ -432,13 +432,16 @@ git clone https://github.com/pety02/HW1_Knowledge_Based_Systems.git
             ```
 ### **Примерни резултати**:
 - След изпълнението на първия тест, посочен в main метода на Main класа, би трябвало да се изведе:
-    Arad -> Drobeta -> Fagaras -> Lugoj -> Giurgiu -> Sibiu -> Eforie -> Zerind -> Bucharest -> Craiova -> Iasi -> Hirsova -> Neamt -> Mehadia -> Rimnicu -> Oradea -> Urziceni -> Pitesti -> Timisoara -> Vaslui -> Arad
+
+  Arad -> Drobeta -> Fagaras -> Lugoj -> Giurgiu -> Sibiu -> Eforie -> Zerind -> Bucharest -> Craiova -> Iasi -> Hirsova -> Neamt -> Mehadia -> Rimnicu -> Oradea -> Urziceni -> Pitesti -> Timisoara -> Vaslui -> Arad
 
 - След изпълнението на втория тест, посочен в main метода на Main класа, би трябвало да се изведе:
-    Fagaras -> Drobeta -> Arad -> Timisoara -> Eforie -> Sibiu -> Lugoj -> Giurgiu -> Urziceni -> Oradea -> Rimnicu -> Pitesti -> Vaslui -> Zerind -> Bucharest -> Craiova -> Iasi -> Hirsova -> Neamt -> Mehadia -> Fagaras
+
+  Fagaras -> Drobeta -> Arad -> Timisoara -> Eforie -> Sibiu -> Lugoj -> Giurgiu -> Urziceni -> Oradea -> Rimnicu -> Pitesti -> Vaslui -> Zerind -> Bucharest -> Craiova -> Iasi -> Hirsova -> Neamt -> Mehadia -> Fagaras
 
 - След изпълнението на трвтия тест, посочен в main метода на Main класа, би трябвало да се изведе:
-    Rimnicu -> Oradea -> Urziceni -> Pitesti -> Fagaras -> Drobeta -> Arad -> Timisoara -> Eforie -> Sibiu -> Lugoj -> Giurgiu -> Mehadia -> Neamt -> Hirsova -> Craiova -> Iasi -> Bucharest -> Zerind -> Vaslui -> Rimnicu
 
-    - анализ на изходните данни при изпълнение на алгоритъма:
+  Rimnicu -> Oradea -> Urziceni -> Pitesti -> Fagaras -> Drobeta -> Arad -> Timisoara -> Eforie -> Sibiu -> Lugoj -> Giurgiu -> Mehadia -> Neamt -> Hirsova -> Craiova -> Iasi -> Bucharest -> Zerind -> Vaslui -> Rimnicu
+
+    - **анализ на изходните данни при изпълнение на алгоритъма**:
     В обобщение на получените резултати бихме могли да кажем, че в зависимост от кой град в Румъния тръгваме различни маршрути за обход на посочената област биха били най-подходящи, тъй като евристиките биха били по-различни, тоест ще виждаме различни (оптимални според случая) маршрути. Резултатите, които Ви се визуализират доказват тези ми твърдения като Ви демонстрират обход на зададената област с един и същ алгоритъм, но преизчислени евристики (според ситуацията).
