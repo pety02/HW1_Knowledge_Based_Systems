@@ -1,146 +1,66 @@
 package org.example;
-
-import org.jgrapht.Graph;
-import org.jgrapht.graph.DefaultDirectedGraph;
-
 import java.util.*;
 
-/**
- * @class Main
- * @brief Main class for solving the Traveling Salesman Problem (TSP) on a graph of cities with coordinates.
- *
- * This class contains methods to calculate heuristics for cities, solve the TSP using nearest neighbor approach,
- * and generate a fully connected graph with city coordinates.
- */
 public class Main {
 
-    /**
-     * @brief Calculates heuristics for all pairs of cities in the graph.
-     *
-     * This method computes the Euclidean distance between all pairs of cities and stores them in a 2D array.
-     * The heuristic value between a city and itself is set to infinity.
-     *
-     * @param graph The graph representing cities as vertices and edges with coordinates.
-     * @return A 2D array containing the heuristic distances between cities.
-     */
-    public static double[][] calculateHeuristics(Graph<String, Edge> graph) {
-        final int size = graph.edgeSet().size(); // gets the max size of the graph cities
-        double maxHeuristic = Double.MAX_VALUE; // initializes max heuristic
-        double[][] heuristics = new double[size][size]; // initializes the heuristics array
-
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                if(i == j) {
-                    // if the start and end city are the same, the heuristic tends to infinity
-                    heuristics[i][j] = maxHeuristic;
-                    continue;
-                }
-                // gets the start edge and end edge
-                Edge startEdge = graph.edgeSet().stream().toList().get(i);
-                Edge endEdge = graph.edgeSet().stream().toList().get(j);
-
-                // calculates the x and y coordinates between start and end edges
-                int vectorXCoordinate = endEdge.getXCoordinate() - startEdge.getXCoordinate();
-                int vectorYCoordinate = endEdge.getYCoordinate() - startEdge.getYCoordinate();
-
-                // calculates the distance between start and end edges and sets this value as
-                // heuristic for cities with i-th and j-th index (the start and the end city)
-                double currentDistance = Math.sqrt(Math.pow(vectorXCoordinate, 2) + Math.pow(vectorYCoordinate, 2));
-                heuristics[i][j] = currentDistance;
-            }
-        }
-
-        return heuristics;
+    public static double calculateHeuristic(Edge currentCity, Edge destinationCity) {
+        return currentCity.equals(destinationCity) ? 0 : Math.sqrt(
+                Math.pow((destinationCity.getxCoordinate() - currentCity.getxCoordinate()), 2)
+                        + Math.pow((destinationCity.getyCoordinate() - currentCity.getyCoordinate()), 2));
     }
 
-    /**
-     * @brief Solves the Traveling Salesman Problem (TSP) using a nearest neighbor approach.
-     *
-     * This method finds the shortest path starting from a given city, visiting all cities exactly once, and
-     * returning to the starting city. It uses precomputed heuristics to determine the nearest unvisited city
-     * at each step.
-     *
-     * @param graph The graph representing cities as vertices and edges with coordinates.
-     * @param startCity The starting city for the TSP path.
-     * @return A string representing the best path found, including the start and return to the start city.
-     */
-    public static String solveTSP(Graph<String, Edge> graph, String startCity) {
-        StringBuilder path = new StringBuilder(startCity); // Start from the initial city
-        var cities = graph.vertexSet().stream().toList(); // Convert the vertex set to a List of String
-        List<String> visited = new ArrayList<>(); // Track visited cities in a List of String
-        visited.add(startCity);
+    public static double calculateTotalDistance(Edge currentCity, Edge destinationCity, double currentDistance) {
+        return currentDistance + calculateHeuristic(currentCity, destinationCity);
+    }
 
-        // Precompute heuristics using the provided method
-        double[][] heuristics = calculateHeuristics(graph);
-        int currentCityIndex = cities.indexOf(startCity);
+    public static String solveTSP(Graph graph, Edge startCity) {
+        StringBuilder path = new StringBuilder(); // Start from the initial city
+        Set<Edge> visited = new HashSet<>(); // Track visited cities in a Set for uniqueness
+        List<Edge> edges = new ArrayList<>(graph.getEdges()); // List of edges for traversal
 
-        while (visited.size() < cities.size()) {
-            int nearestCityIndex = -1;
-            double shortestDistance = Double.MAX_VALUE;
+        Edge currentCity = startCity;
+        visited.add(currentCity);
+        //path.append(currentCity.getLabel());
+
+        double totalDistance = 0;
+
+        while (visited.size() < graph.edgeCount()) {
+            Edge nearestCity = null;
+            double minDistance = Double.MAX_VALUE;
 
             // Find the nearest unvisited city
-            for (int i = 0; i < cities.size(); i++) {
-                if (i == currentCityIndex || visited.contains(cities.get(i))) {
-                    continue; // Skip the current city or already visited ones
-                }
-                if (heuristics[currentCityIndex][i] < shortestDistance) {
-                    shortestDistance = heuristics[currentCityIndex][i];
-                    nearestCityIndex = i;
+            for (Edge edge : edges) {
+                if (!visited.contains(edge)) {
+                    double distance = calculateHeuristic(currentCity, edge);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        nearestCity = edge;
+                    }
                 }
             }
 
-            // If there are no more cities to be visited, terminate the loop
-            if(nearestCityIndex == -1) {
-                break;
-            }
-
-            // Update the path and mark the city as visited
-            String nearestCity = cities.get(nearestCityIndex);
-            path.append(" -> ").append(nearestCity);
-
-            visited.add(nearestCity);
-            currentCityIndex = nearestCityIndex;
-        }
-
-        // Return to the starting city
-        path.append(" -> ").append(startCity);
-        return path.toString();
-    }
-
-    /**
-     * @brief Generates a fully connected graph based on city coordinates.
-     *
-     * This method creates a fully connected directed graph, where each city (vertex) is connected to
-     * every other city (vertex) with an edge representing the distance between them based on their
-     * coordinates.
-     *
-     * @param map A map containing the cities (keys) and their respective coordinates (values).
-     * @return A fully connected graph with the cities as vertices and edges representing the distances between them.
-     */
-    public static Graph<String, Edge> getFullyConnectedGraph(Map<String, Edge> map) {
-        // Create a graph
-        Graph<String, Edge> graph = new DefaultDirectedGraph<>(Edge.class);
-
-        // Add vertices (cities)
-        map.keySet().forEach(graph::addVertex);
-
-        // Add edges to a fully connected graph
-        for (String cityA : map.keySet()) {
-            for (String cityB : map.keySet()) {
-                if (!cityA.equals(cityB)) {
-                    Edge coordinatesA = map.get(cityA);
-                    Edge coordinatesB = map.get(cityB);
-
-                    // Add an edge between the cities with definite coordinates
-                    Edge edge = new Edge(coordinatesB.getXCoordinate() - coordinatesA.getXCoordinate(),
-                            coordinatesB.getYCoordinate() - coordinatesA.getYCoordinate());
-                    graph.addEdge(cityA, cityB, edge);
+            // If we find a nearest city, visit it
+            if (nearestCity != null) {
+                visited.add(nearestCity);
+                totalDistance += minDistance;
+                if(path.isEmpty()) {
+                    path.append(nearestCity.getLabel());
+                } else {
+                    path.append(" -> ").append(nearestCity.getLabel());
                 }
+                currentCity = nearestCity;
+            } else {
+                break; // No unvisited cities left
             }
         }
 
-        return graph;
+        // Return to the start city to complete the cycle
+        totalDistance += calculateHeuristic(currentCity, startCity);
+        path.append(" -> ").append(startCity.getLabel());
+
+        return "Path: " + path + "\nTotal Distance: " + Math.round(totalDistance) + " km.";
     }
+
 
     /**
      * @brief The main entry point of the program.
@@ -152,37 +72,38 @@ public class Main {
      */
     public static void main(String[] args) {
         // Define the coordinates for each city
-        Map<String, Edge> romaniaMap = new HashMap<>();
-        romaniaMap.put("Arad", new Edge(91, 492));
-        romaniaMap.put("Bucharest", new Edge(400, 327));
-        romaniaMap.put("Craiova", new Edge(253, 288));
-        romaniaMap.put("Drobeta", new Edge(165, 299));
-        romaniaMap.put("Eforie", new Edge(562, 293));
-        romaniaMap.put("Fagaras", new Edge(305, 449));
-        romaniaMap.put("Giurgiu", new Edge(375, 270));
-        romaniaMap.put("Hirsova", new Edge(534, 350));
-        romaniaMap.put("Iasi", new Edge(473, 506));
-        romaniaMap.put("Lugoj", new Edge(165, 379));
-        romaniaMap.put("Mehadia", new Edge(168, 339));
-        romaniaMap.put("Neamt", new Edge(406, 537));
-        romaniaMap.put("Oradea", new Edge(131, 571));
-        romaniaMap.put("Pitesti", new Edge(320, 368));
-        romaniaMap.put("Rimnicu", new Edge(233, 410));
-        romaniaMap.put("Sibiu", new Edge(207, 457));
-        romaniaMap.put("Timisoara", new Edge(94, 410));
-        romaniaMap.put("Urziceni", new Edge(456, 350));
-        romaniaMap.put("Vaslui", new Edge(509, 444));
-        romaniaMap.put("Zerind", new Edge(108, 531));
+        Graph graph = new Graph();
+        graph.addEdge(new Edge("Arad", 91, 492));
+        graph.addEdge(new Edge("Bucharest", 400, 327));
+        graph.addEdge(new Edge("Craiova", 253, 288));
+        graph.addEdge(new Edge("Drobeta", 165, 299));
+        graph.addEdge(new Edge("Eforie", 562, 293));
+        graph.addEdge(new Edge("Fagaras", 305, 449));
+        graph.addEdge(new Edge("Giurgiu", 375, 270));
+        graph.addEdge(new Edge("Hirsova", 534, 350));
+        graph.addEdge(new Edge("Iasi", 473, 506));
+        graph.addEdge(new Edge("Lugoj", 165, 379));
+        graph.addEdge(new Edge("Mehadia", 168, 339));
+        graph.addEdge(new Edge("Neamt", 406, 537));
+        graph.addEdge(new Edge("Oradea", 131, 571));
+        graph.addEdge(new Edge("Pitesti", 320, 368));
+        graph.addEdge(new Edge("Rimnicu", 233, 410));
+        graph.addEdge(new Edge("Sibiu", 207, 457));
+        graph.addEdge(new Edge("Timisoara", 94, 410));
+        graph.addEdge(new Edge("Urziceni", 456, 350));
+        graph.addEdge(new Edge("Valui", 509, 444));
+        graph.addEdge(new Edge("Zerind", 108, 531));
+
 
         // Gets fully connected graph from the map of Romania
-        Graph<String, Edge> romaniaGraph = getFullyConnectedGraph(romaniaMap);
+        //Graph<String, Edge> romaniaGraph = getFullyConnectedGraph(romaniaMap);
 
         // Finding the best paths from different cities in Romania and prints them
-        String bestPathFromArad = solveTSP(romaniaGraph, "Arad");
+        String bestPathFromArad = solveTSP(graph, new Edge("Arad", 91, 492));
         System.out.println(bestPathFromArad);
-        String bestPathFromFagaras = solveTSP(romaniaGraph, "Fagaras");
+        String bestPathFromFagaras = solveTSP(graph, new Edge("Fagaras", 305, 449));
         System.out.println(bestPathFromFagaras);
-        String bestPathFromRimnicu = solveTSP(romaniaGraph, "Rimnicu");
+        String bestPathFromRimnicu = solveTSP(graph, new Edge("Rimnicu", 233, 410));
         System.out.println(bestPathFromRimnicu);
     }
 }
