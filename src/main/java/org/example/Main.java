@@ -58,11 +58,10 @@ public class Main {
         while (visited.size() < graph.edgeCount()) {
             Edge nearestCity = null;
             double minDistance = Double.MAX_VALUE;
-
             // Find the nearest unvisited city
             for (Edge edge : edges) {
                 if (!visited.contains(edge)) {
-                    double distance = calculateHeuristic(currentCity, edge);
+                    double distance = calculateTotalDistance(currentCity, edge, totalDistance);
                     if (distance < minDistance) {
                         minDistance = distance;
                         nearestCity = edge;
@@ -86,7 +85,7 @@ public class Main {
         }
 
         // Return to the starting city to complete the cycle
-        totalDistance += calculateHeuristic(currentCity, startCity);
+        totalDistance += calculateTotalDistance(currentCity, startCity, totalDistance);
         path.append(" -> ").append(startCity.getLabel());
 
         return "Path: " + path + "\nTotal Distance: " + Math.round(totalDistance) + " km.";
