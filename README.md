@@ -1,3 +1,9 @@
+# **Системи основани на знание**: Домашна работа № 1
+## **Име**: Петя Личева
+## **Факултетен номер**: 3MI0700022
+## **Специалност**: Информационни системи
+## **Курс**: 3
+
 ### **Описание на задачата**:
 Търговският пътник трябва да тръгне от определен начален град и да се върне в него, 
 като посети точно по веднъж всички останали градове от зададената област. Целта е 
@@ -17,355 +23,382 @@
 
 !["Картата на Румъния"]("C:\Users\User\Desktop\romania_map.png")
 
-Задачата е да проектираме и реализираме програма, която да намира добро приближение на най-краткия маршрут на търговския пътник, като използваме изчислените разстояния между всяка двойка градове в напълно свързания фраф от градовете в Румъния.
+Задачата е да проектираме и реализираме програма, която да намира добро приближение на най-краткия маршрут на търговския пътник, като използваме изчислените разстояния между всяка двойка градове в напълно свързания граф от градовете в Румъния.
 ### **Oписание на предложения/използвания метод за решаване на задачата**:
-Алгоритъмът, който избрах да имплементирам лежи на евристичната функция за "най-добрия съседен град" (определя се от минималното разстояние от начален до краен град по права линия - геометрични изчисления). Чрез функцията calculateHeuristics изчислявам евристичните функции (разстоянията по права линия между всеки два града) като ги представям в табличен вариант (двумерен масив от double стойности). След което при наличието на така изчислените евристики, минавам към съществения алгоритъм за намиране на най-добро приближение на най-добрия път, започващ от фиксиран град, по картата на Румъния и приключващ в същия геад (като през всеки град, различен от началния град, мимавам по точно веднъж).
+Алгоритъмът, който избрах да имплементирам лежи на основата на евристичната функция за "най-добрия съседен град" (определя се от разстоянието от текущия до целевия град по права линия - геометрични изчисления). Чрез функцията **public static double calculateHeuristic(Edge currentCity, Edge destinationCity)** изчислявам в реално време евристичните функции (разстоянията по права линия между текущ и целеви град) при поискване и връщам стойност с плаваща запетая (double). След което при наличието на така изчислените евристики, минавам към съществения алгоритъм за намиране на най-добро приближение на най-добрия път, започващ от фиксиран град, по картата на Румъния и приключващ в същия геад (като през всеки град, различен от началния град, мимавам по точно веднъж).
 - Пример за работата на избрания от мен алгоритъм:
 !["Малък пример за работата на избрания от мен алгоритъм"]("C:\Users\User\Desktop\heuristics_example.png")
+По този начин би работил алгоритъмът, който реших да имплментирам, ако използвах само евристиките (оценките на пътя от текущия град до целевия такъв). Имплементираният от мен алгоритъм надгражда този "наивен" подход като използва и досегашно изминатия път, приближавайки се идейно до информираният метод на търсене на алгоритъма за търсене - A*.
 ### **Описание на реализацията с псевдокод**:
+За реализацията на този алгоритъм използвам **Custom имплементация** на **Edge**, **Vertex** и **Graph** класове, така че да пасват на условието на задачата, тоест **Edge обектите да имат label(име на град в Румъния), x и y координати**, по които да може да се изчислява евристиката и текущо изминатия път (необходими компоненти в реализацията на алгоритъм като този), а **Vertex обектите да представляват двойка от начална и крайна дестинация**. Няма да се фиксирам върху имплментацията на самия граф, тъй като тя е стандартната такава, но поставена в по-ясен контекст (при нужда може да я разгледата в **GitHub-а на проекта: https://github.com/pety02/HW1_Knowledge_Based_Systems)**. По-долу Ви поднасям **псевдокод на реализацията на функциите, участващи в самия алгоритъм**, а също и на main функцията (стартова точка на програмата).
+
 ```pseudo
-CLASS Edge EXTENDS DefaultEdge
-    xCoordinate : INTEGER      
-    yCoordinate : INTEGER  
-
-    FUNCTION Constructor(xCoordinate : INTEGER, yCoordinate : INTEGER)
-        SET this.xCoordinate TO xCoordinate
-        SET this.yCoordinate TO yCoordinate
+CLASS MAIN
+    FUNCTION calculateHeuristic(currentCity, destinationCity) : DOUBLE
+        IF currentCity equals destinationCity THEN
+            RETURN 0
+        ELSE
+            CALCULATE Euclidean distance between currentCity and destinationCity:
+            distance = SQRT((destinationCity.x - currentCity.x)^2 + (destinationCity.y - currentCity.y)^2)
+            RETURN distance
+        END IF
     END FUNCTION
 
-    FUNCTION getXCoordinate() : INTEGER
-        RETURN xCoordinate
+    FUNCTION RETURN currentDistance + calculateHeuristic(currentCity, destinationCity)
+        RETURN currentDistance + calculateHeuristic(currentCity, destinationCity)
     END FUNCTION
 
-    FUNCTION getYCoordinate() : INTEGER
-        RETURN yCoordinate
-    END FUNCTION
+    FUNCTION solveTSP(graph, startCity)
+        INITIALIZE path as an empty string
+        INITIALIZE visited as an empty set
+        CONVERT graph's edges to a list and store in edges
+        SET currentCity to startCity
+        ADD currentCity to visited
+        INITIALIZE totalDistance to 0
 
-    FUNCTION setXCoordinate(xCoordinate : INTEGER)
-        SET this.xCoordinate TO xCoordinate
-    END FUNCTION
+        WHILE visited size is less than the total number of edges in the graph:
+            SET nearestCity to null
+            SET minDistance to infinity
 
-    FUNCTION setYCoordinate(yCoordinate : INTEGER)
-        SET this.yCoordinate TO yCoordinate
-    END FUNCTION
-END CLASS
-
-CLASS Main 
-    FUNCTION calculateHeuristics(graph : Graph OF STRING AND Edge) : STATIC 2D ARRAY OF DOUBLE 
-        SET size : final int TO graph.edgeSet().size()
-        SET maxHeuristics : double TO Double.MAX_VALUE
-        SET heuristices : double[][] TO new double[size][size]
-
-        FOR SET i : int TO 0; CHECK i < size; INCREMENT i
-            FOR SET j : int TO 0; CHECK j < size; INCREMENT j
-                IF i == j 
-                    SET heuristics[i][j] : double TO maxHeuristic
-                    CONTINUE
-                END IF
-                
-                SET startEdge : Edge TO graph.edgeSet().stream().toList().get(i)
-                SET endEdge : Edge TO graph.edgeSet().stream().toList().get(j)
-
-                SET vectorXCoordinate : int TO endEdge.getXCoordinate() - startEdge.getXCoordinate();
-                SET vectorYCoordinate : int TO endEdge.getYCoordinate() - startEdge.getYCoordinate();
-                SET currentDistance : double TO Math.sqrt(Math.pow(vectorXCoordinate, 2) + Math.pow(vectorYCoordinate, 2));
-                SET heuristics[i][j] TO currentDistance;
-            END FOR
-        END FOR
-    END FUNCTION
-
-    FUNCTION solveTSP(graph : GRAPH<STRING, Edge>, startCity : STRING) : STRING
-        path : STRING = startCity
-
-        cities : LIST<STRING> = CONVERT_TO_LIST(graph.vertexSet())
-        visited : LIST<STRING> = EMPTY LIST
-        ADD startCity TO visited
-
-        heuristics : MATRIX<DOUBLE> = calculateHeuristics(graph)
-        currentCityIndex : INTEGER = INDEX_OF(startCity, cities)
-
-        WHILE SIZE(visited) < SIZE(cities)
-            nearestCityIndex : INTEGER = -1
-            shortestDistance : DOUBLE = MAX_VALUE
-
-            FOR i FROM 0 TO SIZE(cities) - 1
-                IF i == currentCityIndex OR cities[i] IN visited
-                    CONTINUE
-                END IF
-
-                IF heuristics[currentCityIndex][i] < shortestDistance
-                    shortestDistance = heuristics[currentCityIndex][i]
-                    nearestCityIndex = i
+            FOR each edge in edges:
+                IF edge is not in visited:
+                    CALCULATE distance to edge using calculateHeuristic
+                    IF distance is less than minDistance:
+                        SET minDistance to distance
+                        SET nearestCity to edge
+                    END IF
                 END IF
             END FOR
 
-            IF nearestCityIndex == -1
+            IF nearestCity is not null THEN
+                ADD nearestCity to visited
+                INCREMENT totalDistance by minDistance
+                IF path is empty THEN
+                    ADD nearestCity label to path
+                ELSE
+                    APPEND " -> " and nearestCity label to path
+                    SET currentCity to nearestCity
+                END IF
+            ELSE
                 BREAK
             END IF
 
-            nearestCity : STRING = cities[nearestCityIndex]
-            path = CONCATENATE(path, " -> ", nearestCity)
-
-            ADD nearestCity TO visited
-            currentCityIndex = nearestCityIndex
+            RETURN to the starting city:
+                INCREMENT totalDistance by calculateHeuristic(currentCity, startCity)
+                APPEND " -> " and startCity label to path
         END WHILE
 
-        path = CONCATENATE(path, " -> ", startCity)
-        RETURN path
-    END FUNCTION
-
-    FUNCTION getFullyConnectedGraph(map : MAP<STRING, Edge>) : GRAPH OF STRING AND Edge
-        graph : GRAPH<STRING, Edge> = NEW DirectedGraph()
-
-        FOR EACH city IN KEYS(map)
-            ADD_VERTEX(graph, city)
-        END FOR
-
-        FOR EACH cityA IN KEYS(map)
-            FOR EACH cityB IN KEYS(map)
-                IF cityA != cityB
-                    coordinatesA : Edge = map[cityA]
-                    coordinatesB : Edge = map[cityB]
-
-                    edge : Edge = NEW Edge(
-                        coordinatesB.xCoordinate - coordinatesA.xCoordinate,
-                        coordinatesB.yCoordinate - coordinatesA.yCoordinate
-                    )
-
-                    ADD_EDGE(graph, cityA, cityB, edge)
-                END IF
-            END FOR
-        END FOR
-
-        RETURN graph
-    END FUNCTION
-
-
-    FUNCTION main(args : ARRAY OF STRING)
-        romaniaMap : MAP<STRING, Edge> = EMPTY MAP
-        romaniaMap["Arad"] = NEW Edge(91, 492)
-        romaniaMap["Bucharest"] = NEW Edge(400, 327)
-        romaniaMap["Craiova"] = NEW Edge(253, 288)
-        romaniaMap["Drobeta"] = NEW Edge(165, 299)
-        romaniaMap["Eforie"] = NEW Edge(562, 293)
-        romaniaMap["Fagaras"] = NEW Edge(305, 449)
-        romaniaMap["Giurgiu"] = NEW Edge(375, 270)
-        romaniaMap["Hirsova"] = NEW Edge(534, 350)
-        romaniaMap["Iasi"] = NEW Edge(473, 506)
-        romaniaMap["Lugoj"] = NEW Edge(165, 379)
-        romaniaMap["Mehadia"] = NEW Edge(168, 339)
-        romaniaMap["Neamt"] = NEW Edge(406, 537)
-        romaniaMap["Oradea"] = NEW Edge(131, 571)
-        romaniaMap["Pitesti"] = NEW Edge(320, 368)
-        romaniaMap["Rimnicu"] = NEW Edge(233, 410)
-        romaniaMap["Sibiu"] = NEW Edge(207, 457)
-        romaniaMap["Timisoara"] = NEW Edge(94, 410)
-        romaniaMap["Urziceni"] = NEW Edge(456, 350)
-        romaniaMap["Vaslui"] = NEW Edge(509, 444)
-        romaniaMap["Zerind"] = NEW Edge(108, 531)
-
-        romaniaGraph : GRAPH<STRING, Edge> = getFullyConnectedGraph(romaniaMap)
-
-        bestPathFromArad : STRING = solveTSP(romaniaGraph, "Arad")
-        PRINT bestPathFromArad
-
-        bestPathFromFagaras : STRING = solveTSP(romaniaGraph, "Fagaras")
-        PRINT bestPathFromFagaras
-
-        bestPathFromRimnicu : STRING = solveTSP(romaniaGraph, "Rimnicu")
-        PRINT bestPathFromRimnicu
+        RETURN "Path: " + path + "\nTotal Distance: " + totalDistance rounded to nearest integer
     END FUNCTION
 END CLASS
 ```
 ### **Самата реализация като изходен код на предпочитан език за програмиране (JAVA Maven проект)**:
-- Edge class
+- **Edge class**
 ```java
 package org.example;
 import org.jgrapht.graph.DefaultEdge;
 
 public class Edge extends DefaultEdge {
+    private String label; // The label associated with the edge.
+    private int xCoordinate; // The x-coordinate associated with the edge.
+    private int yCoordinate; // The y-coordinate associated with the edge.
 
-    private int xCoordinate;
-
-    private int yCoordinate;
-
-    public Edge(int xCoordinate, int yCoordinate) {
-        this.setXCoordinate(xCoordinate);
-        this.setYCoordinate(yCoordinate);
+    public Edge(String label, int xCoordinate, int yCoordinate) {
+        this.setLabel(label);
+        this.setxCoordinate(xCoordinate);
+        this.setyCoordinate(yCoordinate);
     }
 
-    public int getXCoordinate() {
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
+    }
+
+    public int getxCoordinate() {
         return xCoordinate;
     }
 
-    public void setXCoordinate(int xCoordinate) {
+    public void setxCoordinate(int xCoordinate) {
         this.xCoordinate = xCoordinate;
     }
 
-    public int getYCoordinate() {
+    public int getyCoordinate() {
         return yCoordinate;
     }
 
-    public void setYCoordinate(int yCoordinate) {
+    public void setyCoordinate(int yCoordinate) {
         this.yCoordinate = yCoordinate;
     }
 }
 ```
-- Main class
+- **Vertex class**
 ```java
 package org.example;
 
-import org.jgrapht.Graph;
-import org.jgrapht.graph.DefaultDirectedGraph;
+public class Vertex {
+    private Edge startEdge; // The starting edge associated with the vertex.
+    private Edge endEdge; // The ending edge associated with the vertex.
+    private double value; // The value of the vertex, calculated based on the coordinates of its edges.
 
-import java.util.*;
+    public Vertex(Edge startEdge, Edge endEdge) {
+        double value = Math.sqrt(Math.pow((endEdge.getyCoordinate() - startEdge.getyCoordinate()), 2)
+                + Math.pow((endEdge.getxCoordinate() - startEdge.getxCoordinate()), 2));
+        this.setStartEdge(startEdge);
+        this.setEndEdge(endEdge);
+        this.setValue(value);
+    }
+
+    public Edge getStartEdge() {
+        return startEdge;
+    }
+
+    public void setStartEdge(Edge startEdge) {
+        this.startEdge = startEdge;
+    }
+
+    public Edge getEndEdge() {
+        return endEdge;
+    }
+
+    public void setEndEdge(Edge endEdge) {
+        this.endEdge = endEdge;
+    }
+
+    public double getValue() {
+        return value;
+    }
+
+    public void setValue(double value) {
+        this.value = value;
+    }
+}
+```
+- **Graph class**
+```java
+package org.example;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+public class Graph {
+    private List<Vertex> vertices; // List of vertices in the graph.
+    private Set<Edge> edges; // Set of edges in the graph.
+
+    public Graph() {
+        this.vertices = new ArrayList<>();
+        this.edges = new HashSet<>();
+    }
+
+    public Graph(List<Vertex> vertices, Set<Edge> edges) {
+        this.vertices = vertices;
+        this.edges = edges;
+    }
+
+    public List<Vertex> getVertices() {
+        return vertices;
+    }
+
+    public void setVertices(List<Vertex> vertices) {
+        this.vertices = vertices;
+    }
+
+    public Set<Edge> getEdges() {
+        return edges;
+    }
+
+    public void setEdges(Set<Edge> edges) {
+        this.edges = edges;
+    }
+
+    public void addVertex(Vertex vertex) {
+        vertices.add(vertex);
+    }
+
+    public void removeVertex(Vertex vertex) {
+        vertices.remove(vertex);
+        edges.removeIf(edge -> edge.equals(vertex.getStartEdge()) || edge.equals(vertex.getEndEdge()));
+    }
+
+    public void addEdge(Edge edge) {
+        edges.add(edge);
+        for (Edge currEdge : this.edges) {
+            if (edge.getLabel().equals(currEdge.getLabel())) {
+                continue;
+            }
+            this.addVertex(new Vertex(currEdge, edge));
+            this.addVertex(new Vertex(edge, currEdge));
+        }
+    }
+
+    public void removeEdge(Edge edge) {
+        edges.remove(edge);
+        vertices.removeIf(vertex -> vertex.getStartEdge().equals(edge) || vertex.getEndEdge().equals(edge));
+    }
+
+    public boolean containsVertex(Vertex vertex) {
+        return vertices.contains(vertex);
+    }
+
+    public boolean containsEdge(Edge edge) {
+        return edges.contains(edge);
+    }
+
+    public int vertexCount() {
+        return vertices.size();
+    }
+
+    public int edgeCount() {
+        return edges.size();
+    }
+
+    public List<Vertex> getNeighbors(Vertex vertex) {
+        List<Vertex> neighbors = new ArrayList<>();
+        for (Edge edge : edges) {
+            if (edge.equals(vertex.getStartEdge()) || edge.equals(vertex.getEndEdge())) {
+                for (Vertex v : vertices) {
+                    if (v != vertex && (v.getStartEdge() == edge || v.getEndEdge() == edge)) {
+                        neighbors.add(v);
+                    }
+                }
+            }
+        }
+        return neighbors;
+    }
+
+    public void clear() {
+        vertices.clear();
+        edges.clear();
+    }
+
+    public void display() {
+        System.out.println("Vertices:");
+        for (Vertex vertex : vertices) {
+            System.out.println("- Vertex with Value: " + vertex.getValue());
+        }
+
+        System.out.println("Edges:");
+        for (Edge edge : edges) {
+            System.out.println("- Edge with Label: " + edge.getLabel() + " at (" + edge.getxCoordinate() + ", " + edge.getyCoordinate() + ")");
+        }
+    }
+}
+```
+- **Main class**
+```java
+package org.example;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class Main {
 
-    public static double[][] calculateHeuristics(Graph<String, Edge> graph) {
-        final int size = graph.edgeSet().size(); // gets the max size of the graph cities
-        double maxHeuristic = Double.MAX_VALUE; // initializes max heuristic
-        double[][] heuristics = new double[size][size]; // initializes the heuristics array
-
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                if(i == j) {
-                    // if the start and end city are the same, the heuristic tends to infinity
-                    heuristics[i][j] = maxHeuristic;
-                    continue;
-                }
-                // gets the start edge and end edge
-                Edge startEdge = graph.edgeSet().stream().toList().get(i);
-                Edge endEdge = graph.edgeSet().stream().toList().get(j);
-
-                // calculates the x and y coordinates between start and end edges
-                int vectorXCoordinate = endEdge.getXCoordinate() - startEdge.getXCoordinate();
-                int vectorYCoordinate = endEdge.getYCoordinate() - startEdge.getYCoordinate();
-
-                // calculates the distance between start and end edges and sets this value as
-                // heuristic for cities with i-th and j-th index (the start and the end city)
-                double currentDistance = Math.sqrt(Math.pow(vectorXCoordinate, 2) + Math.pow(vectorYCoordinate, 2));
-                heuristics[i][j] = currentDistance;
-            }
-        }
-
-        return heuristics;
+    public static double calculateHeuristic(Edge currentCity, Edge destinationCity) {
+        return currentCity.equals(destinationCity) ? 0 : Math.sqrt(
+                Math.pow((destinationCity.getxCoordinate() - currentCity.getxCoordinate()), 2)
+                        + Math.pow((destinationCity.getyCoordinate() - currentCity.getyCoordinate()), 2));
     }
 
-    public static String solveTSP(Graph<String, Edge> graph, String startCity) {
-        StringBuilder path = new StringBuilder(startCity); // Start from the initial city
-        var cities = graph.vertexSet().stream().toList(); // Convert the vertex set to a List of String
-        List<String> visited = new ArrayList<>(); // Track visited cities in a List of String
-        visited.add(startCity);
+    public static double calculateTotalDistance(Edge currentCity, Edge destinationCity, double currentDistance) {
+        return currentDistance + calculateHeuristic(currentCity, destinationCity);
+    }
 
-        // Precompute heuristics using the provided method
-        double[][] heuristics = calculateHeuristics(graph);
-        int currentCityIndex = cities.indexOf(startCity);
+    public static String solveTSP(Graph graph, Edge startCity) {
+        StringBuilder path = new StringBuilder(); ///< Tracks the sequence of cities visited.
+        Set<Edge> visited = new HashSet<>(); ///< Tracks visited cities to avoid revisits.
+        List<Edge> edges = new ArrayList<>(graph.getEdges()); ///< List of edges for traversal.
 
-        while (visited.size() < cities.size()) {
-            int nearestCityIndex = -1;
-            double shortestDistance = Double.MAX_VALUE;
+        Edge currentCity = startCity;
+        visited.add(currentCity);
 
+        double totalDistance = 0;
+
+        while (visited.size() < graph.edgeCount()) {
+            Edge nearestCity = null;
+            double minDistance = Double.MAX_VALUE;
             // Find the nearest unvisited city
-            for (int i = 0; i < cities.size(); i++) {
-                if (i == currentCityIndex || visited.contains(cities.get(i))) {
-                    continue; // Skip the current city or already visited ones
-                }
-                if (heuristics[currentCityIndex][i] < shortestDistance) {
-                    shortestDistance = heuristics[currentCityIndex][i];
-                    nearestCityIndex = i;
+            for (Edge edge : edges) {
+                if (!visited.contains(edge)) {
+                    double distance = calculateTotalDistance(currentCity, edge, totalDistance);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        nearestCity = edge;
+                    }
                 }
             }
 
-            // If there are no more cities to be visited, terminate the loop
-            if(nearestCityIndex == -1) {
-                break;
-            }
-
-            // Update the path and mark the city as visited
-            String nearestCity = cities.get(nearestCityIndex);
-            path.append(" -> ").append(nearestCity);
-
-            visited.add(nearestCity);
-            currentCityIndex = nearestCityIndex;
-        }
-
-        // Return to the starting city
-        path.append(" -> ").append(startCity);
-        return path.toString();
-    }
-
-    public static Graph<String, Edge> getFullyConnectedGraph(Map<String, Edge> map) {
-        // Create a graph
-        Graph<String, Edge> graph = new DefaultDirectedGraph<>(Edge.class);
-
-        // Add vertices (cities)
-        map.keySet().forEach(graph::addVertex);
-
-        // Add edges to a fully connected graph
-        for (String cityA : map.keySet()) {
-            for (String cityB : map.keySet()) {
-                if (!cityA.equals(cityB)) {
-                    Edge coordinatesA = map.get(cityA);
-                    Edge coordinatesB = map.get(cityB);
-
-                    // Add an edge between the cities with definite coordinates
-                    Edge edge = new Edge(coordinatesB.getXCoordinate() - coordinatesA.getXCoordinate(),
-                            coordinatesB.getYCoordinate() - coordinatesA.getYCoordinate());
-                    graph.addEdge(cityA, cityB, edge);
+            // Visit the nearest city if found
+            if (nearestCity != null) {
+                visited.add(nearestCity);
+                totalDistance += minDistance;
+                if (path.isEmpty()) {
+                    path.append(nearestCity.getLabel());
+                } else {
+                    path.append(" -> ").append(nearestCity.getLabel());
                 }
+                currentCity = nearestCity;
+            } else {
+                break; // No more unvisited cities
             }
         }
 
-        return graph;
+        // Return to the starting city to complete the cycle
+        totalDistance += calculateTotalDistance(currentCity, startCity, totalDistance);
+        path.append(" -> ").append(startCity.getLabel());
+
+        return "Path: " + path + "\nTotal Distance: " + Math.round(totalDistance) + " km.";
     }
 
     public static void main(String[] args) {
-        // Define the coordinates for each city
-        Map<String, Edge> romaniaMap = new HashMap<>();
-        romaniaMap.put("Arad", new Edge(91, 492));
-        romaniaMap.put("Bucharest", new Edge(400, 327));
-        romaniaMap.put("Craiova", new Edge(253, 288));
-        romaniaMap.put("Drobeta", new Edge(165, 299));
-        romaniaMap.put("Eforie", new Edge(562, 293));
-        romaniaMap.put("Fagaras", new Edge(305, 449));
-        romaniaMap.put("Giurgiu", new Edge(375, 270));
-        romaniaMap.put("Hirsova", new Edge(534, 350));
-        romaniaMap.put("Iasi", new Edge(473, 506));
-        romaniaMap.put("Lugoj", new Edge(165, 379));
-        romaniaMap.put("Mehadia", new Edge(168, 339));
-        romaniaMap.put("Neamt", new Edge(406, 537));
-        romaniaMap.put("Oradea", new Edge(131, 571));
-        romaniaMap.put("Pitesti", new Edge(320, 368));
-        romaniaMap.put("Rimnicu", new Edge(233, 410));
-        romaniaMap.put("Sibiu", new Edge(207, 457));
-        romaniaMap.put("Timisoara", new Edge(94, 410));
-        romaniaMap.put("Urziceni", new Edge(456, 350));
-        romaniaMap.put("Vaslui", new Edge(509, 444));
-        romaniaMap.put("Zerind", new Edge(108, 531));
+        // Initialize the graph with cities and their coordinates
+        Graph graph = new Graph();
+        graph.addEdge(new Edge("Arad", 91, 492));
+        graph.addEdge(new Edge("Bucharest", 400, 327));
+        graph.addEdge(new Edge("Craiova", 253, 288));
+        graph.addEdge(new Edge("Drobeta", 165, 299));
+        graph.addEdge(new Edge("Eforie", 562, 293));
+        graph.addEdge(new Edge("Fagaras", 305, 449));
+        graph.addEdge(new Edge("Giurgiu", 375, 270));
+        graph.addEdge(new Edge("Hirsova", 534, 350));
+        graph.addEdge(new Edge("Iasi", 473, 506));
+        graph.addEdge(new Edge("Lugoj", 165, 379));
+        graph.addEdge(new Edge("Mehadia", 168, 339));
+        graph.addEdge(new Edge("Neamt", 406, 537));
+        graph.addEdge(new Edge("Oradea", 131, 571));
+        graph.addEdge(new Edge("Pitesti", 320, 368));
+        graph.addEdge(new Edge("Rimnicu", 233, 410));
+        graph.addEdge(new Edge("Sibiu", 207, 457));
+        graph.addEdge(new Edge("Timisoara", 94, 410));
+        graph.addEdge(new Edge("Urziceni", 456, 350));
+        graph.addEdge(new Edge("Valui", 509, 444));
+        graph.addEdge(new Edge("Zerind", 108, 531));
 
-        // Gets fully connected graph from the map of Romania
-        Graph<String, Edge> romaniaGraph = getFullyConnectedGraph(romaniaMap);
-
-        // Finding the best paths from different cities in Romania and prints them
-        String bestPathFromArad = solveTSP(romaniaGraph, "Arad");
+        // Solve the TSP starting from different cities and print the results
+        String bestPathFromArad = solveTSP(graph, new Edge("Arad", 91, 492));
         System.out.println(bestPathFromArad);
-        String bestPathFromFagaras = solveTSP(romaniaGraph, "Fagaras");
+
+        String bestPathFromFagaras = solveTSP(graph, new Edge("Fagaras", 305, 449));
         System.out.println(bestPathFromFagaras);
-        String bestPathFromRimnicu = solveTSP(romaniaGraph, "Rimnicu");
+
+        String bestPathFromRimnicu = solveTSP(graph, new Edge("Rimnicu", 233, 410));
         System.out.println(bestPathFromRimnicu);
     }
 }
 ```
-- GitHub на проекта:
+- **GitHub на проекта**:
 ```bash
 git clone https://github.com/pety02/HW1_Knowledge_Based_Systems.git
 ```
 
 ### **Инструкции за компилиране на програмата**:
-- при клониране на проекта от GitHub:
+- **При клониране на проекта от GitHub**:
     1. Уверете се, че Maven и Java са инсталирани:
-        
         1.1. Проверете версията на Maven:
         ```bash
         mvn -v
@@ -390,7 +423,7 @@ git clone https://github.com/pety02/HW1_Knowledge_Based_Systems.git
         1. Почисти временните файлове.
         2. Компилира Java кода.
         3. Ако искате да стартирате тестовете:
-- при наличието на source кода и конфигурационен pom.xml файл, които са в една директория (тоест не следват стандартите на Maven):
+- **При наличието на source кода и конфигурационен pom.xml файл, които са в една директория (тоест не следват стандартите на Maven)**:
     - Проблем: Maven очаква специфична структура на директориите. Ако структурата на проекта е различна, трябва да направите промени в pom.xml или да организирате файловете правилно.
         1. Вариант 1: Промяна на структурата на проекта към Maven стандарт
             1.1. Организирайте файловете според Maven стандартната структура:
@@ -431,17 +464,20 @@ git clone https://github.com/pety02/HW1_Knowledge_Based_Systems.git
             mvn package
             ```
 ### **Примерни резултати**:
-- След изпълнението на първия тест, посочен в main метода на Main класа, би трябвало да се изведе:
+- След изпълнението на **първия тест**, посочен в main метода на Main класа, би трябвало да се изведе:
+    
+    Path: Arad -> Zerind -> Oradea -> Sibiu -> Rimnicu -> Lugoj -> Mehadia -> Drobeta -> Craiova -> Pitesti -> Fagaras -> Neamt -> Iasi -> Valui -> Hirsova -> Eforie -> Urziceni -> Bucharest -> Giurgiu -> Arad
+    Total Distance: 30041807 km.
 
-  Arad -> Drobeta -> Fagaras -> Lugoj -> Giurgiu -> Sibiu -> Eforie -> Zerind -> Bucharest -> Craiova -> Iasi -> Hirsova -> Neamt -> Mehadia -> Rimnicu -> Oradea -> Urziceni -> Pitesti -> Timisoara -> Vaslui -> Arad
+- След изпълнението на **втория тест**, посочен в main метода на Main класа, би трябвало да се изведе:
+    
+    Path: Fagaras -> Rimnicu -> Sibiu -> Lugoj -> Mehadia -> Drobeta -> Craiova -> Pitesti -> Bucharest -> Urziceni -> Hirsova -> Eforie -> Valui -> Iasi -> Neamt -> Giurgiu -> Timisoara -> Arad -> Zerind -> Fagaras
+    Total Distance: 37774036 km.
 
-- След изпълнението на втория тест, посочен в main метода на Main класа, би трябвало да се изведе:
-
-  Fagaras -> Drobeta -> Arad -> Timisoara -> Eforie -> Sibiu -> Lugoj -> Giurgiu -> Urziceni -> Oradea -> Rimnicu -> Pitesti -> Vaslui -> Zerind -> Bucharest -> Craiova -> Iasi -> Hirsova -> Neamt -> Mehadia -> Fagaras
-
-- След изпълнението на трвтия тест, посочен в main метода на Main класа, би трябвало да се изведе:
-
-  Rimnicu -> Oradea -> Urziceni -> Pitesti -> Fagaras -> Drobeta -> Arad -> Timisoara -> Eforie -> Sibiu -> Lugoj -> Giurgiu -> Mehadia -> Neamt -> Hirsova -> Craiova -> Iasi -> Bucharest -> Zerind -> Vaslui -> Rimnicu
+- След изпълнението на **третия тест**, посочен в main метода на Main класа, би трябвало да се изведе:
+    
+    Path: Rimnicu -> Sibiu -> Lugoj -> Mehadia -> Drobeta -> Craiova -> Pitesti -> Fagaras -> Neamt -> Iasi -> Valui -> Hirsova -> Eforie -> Urziceni -> Bucharest -> Giurgiu -> Timisoara -> Arad -> Zerind -> Rimnicu
+    Total Distance: 32713745 km.
 
     - **анализ на изходните данни при изпълнение на алгоритъма**:
     В обобщение на получените резултати бихме могли да кажем, че в зависимост от кой град в Румъния тръгваме различни маршрути за обход на посочената област биха били най-подходящи, тъй като евристиките биха били по-различни, тоест ще виждаме различни (оптимални според случая) маршрути. Резултатите, които Ви се визуализират доказват тези ми твърдения като Ви демонстрират обход на зададената област с един и същ алгоритъм, но преизчислени евристики (според ситуацията).
