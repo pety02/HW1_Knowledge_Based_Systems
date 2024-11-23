@@ -8,9 +8,9 @@ import org.jgrapht.graph.DefaultEdge;
  * library and adds functionality for managing a label and coordinates (x, y).
  */
 public class Edge extends DefaultEdge {
-    private String label; ///< The label associated with the edge.
-    private int xCoordinate; ///< The x-coordinate associated with the edge.
-    private int yCoordinate; ///< The y-coordinate associated with the edge.
+    private String label; /// The label associated with the edge.
+    private int xCoordinate; /// The x-coordinate associated with the edge.
+    private int yCoordinate; /// The y-coordinate associated with the edge.
 
     /**
      * Constructs an Edge object with a specified label and coordinates.

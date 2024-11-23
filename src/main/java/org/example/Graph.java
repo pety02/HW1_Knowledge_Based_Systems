@@ -10,8 +10,8 @@ import java.util.Set;
  * The graph supports basic operations such as adding, removing, and querying vertices and edges.
  */
 public class Graph {
-    private List<Vertex> vertices; ///< List of vertices in the graph.
-    private Set<Edge> edges; ///< Set of edges in the graph.
+    private List<Vertex> vertices; /// List of vertices in the graph.
+    private Set<Edge> edges; /// Set of edges in the graph.
 
     /**
      * Default constructor that initializes an empty graph.

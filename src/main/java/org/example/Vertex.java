@@ -4,9 +4,9 @@ package org.example;
  * Represents a vertex in a graph, defined by its connection to two edges and a calculated value.
  */
 public class Vertex {
-    private Edge startEdge; ///< The starting edge associated with the vertex.
-    private Edge endEdge; ///< The ending edge associated with the vertex.
-    private double value; ///< The value of the vertex, calculated based on the coordinates of its edges.
+    private Edge startEdge; /// The starting edge associated with the vertex.
+    private Edge endEdge; /// The ending edge associated with the vertex.
+    private double value; /// The value of the vertex, calculated based on the coordinates of its edges.
 
     /**
      * Constructs a Vertex using two edges and calculates its value.
